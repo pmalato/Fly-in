@@ -3,9 +3,20 @@ class FlyInError(Exception):
         super().__init__(message)
 
 
+class MissingDroneCountError(FlyInError):
+    def __init__(self, message: str = "Missing 'nb_drones' key") -> None:
+        super().__init__(message)
+
+
 class MissingSeperatorError(FlyInError):
     def __init__(self, lineno: int, message: str = "Invalid file format - "
                  "Missing valid seperator") -> None:
+        super().__init__(f"{message}, line {lineno}")
+
+
+class PositiveIntError(FlyInError):
+    def __init__(self, lineno: int, message: str = "Integer value must "
+                 "be positive") -> None:
         super().__init__(f"{message}, line {lineno}")
 
 
@@ -24,6 +35,13 @@ class HubDetailsError(FlyInError):
                  "'zone=value(str)' or 'color=value(str)'"
                  " or 'max_capacity=value(positive int)'"
                  ) -> None:
+        super().__init__(f"{message}, line {lineno}")
+
+
+class HubDetailsZoneError(FlyInError):
+    def __init__(self, lineno: int, message: str = "Invalid file format - "
+                 "Acceptable zone values:\n"
+                 "'normal', 'blocked', 'restricted' and 'priority'") -> None:
         super().__init__(f"{message}, line {lineno}")
 
 

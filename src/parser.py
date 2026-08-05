@@ -1,11 +1,14 @@
 import re
 from typing import Any
 from src.errors import (
+    MissingDroneCountError,
     MissingSeperatorError,
+    PositiveIntError,
     HubError,
     HubDetailsError,
     InvalidKeyError,
     DuplicateKeysError,
+    HubDetailsZoneError,
     DuplicateValues,
     MissingStartEndError,
     MatchError
@@ -15,6 +18,7 @@ from src.errors import (
 class Parser:
     def __init__(self) -> None:
         self._line_count: dict[str, int] = {}
+        self._drone_count: int = 0
         self._raw: dict[str, list[str]] = {}
         self._hub: dict[str, list[Any]] = {}
         self._connect: list[Any] = []
@@ -52,6 +56,14 @@ class Parser:
         if not self._raw["start_hub"] or not self._raw["end_hub"]:
             raise MissingStartEndError()
 
+    def drone_count(self) -> int:
+        if not self._raw["nb_drones"]:
+            raise MissingDroneCountError()
+        self._drone_count = int(self._raw["nb_drones"][0])
+        if self._drone_count <= 0:
+            raise PositiveIntError(self._line_count["nb_drones"])
+        return self._drone_count
+
     def convert_hub(self) -> None:
         pattern: str = r"^(\S+)\s+(\d+)\s+(\d+)(?:\s+\[(.*?)\])?$"
         name: str = ""
@@ -73,6 +85,8 @@ class Parser:
                         try:
                             x = int(arg1)
                             y = int(arg2)
+                            if x < 0 or y < 0:
+                                raise PositiveIntError(self._line_count[i])
                             if arg3:
                                 words = arg3.split(" ")
                                 for k in words:
@@ -85,12 +99,21 @@ class Parser:
                                             key != "max_drones":
                                         raise HubDetailsError(
                                             self._line_count[i])
-                                    # FIQUEI AQUI!!! Tratar de valid details values
+                                    if key == "zone" and not \
+                                            (value == "normal" or
+                                             value == "blocked" or
+                                             value == "restricted" or
+                                             value == "priority"):
+                                        raise HubDetailsZoneError(
+                                            self._line_count[i])
                                     if key in details:
                                         raise DuplicateKeysError(
                                             self._line_count[i])
                                     if key == "max_drones":
                                         value = int(value)
+                                        if value <= 0:
+                                            raise PositiveIntError(
+                                                self._line_count[i])
                                     details |= {key: value}
                         except ValueError:
                             raise HubError(self._line_count[i])
