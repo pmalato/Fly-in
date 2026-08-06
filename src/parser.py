@@ -1,3 +1,4 @@
+import copy
 import re
 from typing import Any
 from src.errors import (
@@ -9,7 +10,8 @@ from src.errors import (
     InvalidKeyError,
     DuplicateKeysError,
     HubDetailsZoneError,
-    DuplicateValues,
+    DuplicateHubNameError,
+    DuplicateCoordinatesError,
     MissingStartEndError,
     MatchError
     )
@@ -36,24 +38,22 @@ class Parser:
                     raise MissingSeperatorError(line_count)
                 else:
                     key, value = line.split(": ")
-                    if key == "start_hub" and self._raw["start_hub"] or \
-                            key == "end_hub" and self._raw["end_hub"]:
+                    if key == "start_hub" and "start_hub" in self._raw or \
+                            key == "end_hub" and "end_hub" in self._raw:
                         raise DuplicateKeysError(line_count,
                                                  "Invalid file format"
                                                  "There must exactly be 1 "
                                                  "'start_hub' and 1 'end_hub'")
-                    if value in self._line_count:
-                        raise DuplicateValues(line_count)
+                    elif key in self._raw:
+                        key = f"{line_count}" + key
                     self._line_count |= {value: line_count}
-                    if key in self._raw:
-                        self._raw[key] += [value]
-                    elif key == "nb_drones" or\
+                    if key == "nb_drones" or\
                             key.endswith("hub") or\
-                            key == "connection":
+                            key.endswith("connection"):
                         self._raw |= {key: [value]}
                     else:
                         raise InvalidKeyError(line_count)
-        if not self._raw["start_hub"] or not self._raw["end_hub"]:
+        if "end_hub" not in self._raw or "start_hub" not in self._raw:
             raise MissingStartEndError()
 
     def drone_count(self) -> int:
@@ -64,8 +64,26 @@ class Parser:
             raise PositiveIntError(self._line_count["nb_drones"])
         return self._drone_count
 
+    def duplicate_coordinates(self, x: int, y: int) -> str:
+        for i in self._hub:
+            for _ in self._hub[i]:
+                k, z = self._hub[i][1], self._hub[i][2]
+                if k == x and z == y:
+                    return i
+        return ""
+
+    def duplicate_name(self, name: str) -> "str":
+        for i in self._hub:
+            if self._hub[i][0] == name:
+                return i
+        return ""
+
     def convert_hub(self) -> None:
-        pattern: str = r"^(\S+)\s+(\d+)\s+(\d+)(?:\s+\[(.*?)\])?$"
+        new_dict: dict[str, list[Any]] = {}
+        for i in self._raw:
+            if i.endswith("hub"):
+                new_dict[i] = copy.deepcopy(self._raw[i])
+        pattern: str = r"^(\S+)\s+(-?\d+)\s+(-?\d+)(?:\s+\[(.*?)\])?$"
         name: str = ""
         x: int
         y: int
@@ -74,53 +92,63 @@ class Parser:
         arg2: str = ""
         arg3: str = ""
         words: list[str]
-        for i in self._raw:
-            for j in self._raw[i]:
+        for i in new_dict:
+            for j in new_dict[i]:
                 if i.endswith("hub"):
                     match = re.match(pattern, j)
                     if match:
                         name, arg1, arg2, arg3 = match.groups()
+                        if self.duplicate_name(name) != "":
+                            raise DuplicateHubNameError(
+                                self.duplicate_name(name), self._line_count[j])
                         if not name or not arg1 or not arg2:
-                            raise HubError(self._line_count[i])
+                            raise HubError(self._line_count[j])
                         try:
                             x = int(arg1)
                             y = int(arg2)
-                            if x < 0 or y < 0:
-                                raise PositiveIntError(self._line_count[i])
+                            if self.duplicate_coordinates(x, y) != "":
+                                raise DuplicateCoordinatesError(
+                                    self.duplicate_coordinates(x, y),
+                                    self._line_count[j])
                             if arg3:
+                                details = {}
                                 words = arg3.split(" ")
                                 for k in words:
-                                    if "=" not in words:
+                                    if "=" not in k:
                                         raise HubDetailsError(
-                                            self._line_count[i])
+                                            self._line_count[j])
                                     key, value = k.split("=")
                                     if key != "zone" and \
                                             key != "color" and \
                                             key != "max_drones":
                                         raise HubDetailsError(
-                                            self._line_count[i])
+                                            self._line_count[j])
                                     if key == "zone" and not \
                                             (value == "normal" or
                                              value == "blocked" or
                                              value == "restricted" or
                                              value == "priority"):
                                         raise HubDetailsZoneError(
-                                            self._line_count[i])
+                                            self._line_count[j])
                                     if key in details:
                                         raise DuplicateKeysError(
-                                            self._line_count[i])
+                                            self._line_count[j])
                                     if key == "max_drones":
+                                        if i == "start_hub" or\
+                                                i == "end_hub":
+                                            continue
                                         value = int(value)
                                         if value <= 0:
                                             raise PositiveIntError(
-                                                self._line_count[i])
+                                                self._line_count[j])
                                     details |= {key: value}
                         except ValueError:
-                            raise HubError(self._line_count[i])
+                            raise HubError(self._line_count[j])
                     else:
-                        raise MatchError(self._line_count[i])
+                        raise MatchError(self._line_count[j])
                 else:
-                    raise InvalidKeyError(self._line_count[i])
+                    raise InvalidKeyError(self._line_count[j])
+                self._hub |= {i: [name, x, y, details]}
 
     def get_lines(self) -> dict[str, list[str]]:
         return self._raw

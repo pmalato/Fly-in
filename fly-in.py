@@ -6,7 +6,6 @@ from src.errors import (
 
 
 def main() -> None:
-    print("Welcome to the new Python Milestone3 project: Fly-in")
     dict2: dict[str, Any] = {}
     try:
         test = Parser()
@@ -14,8 +13,7 @@ def main() -> None:
         test.convert_hub()
         dict2 = test.get_hubs()
         for x in dict2:
-            for y in dict2[x]:
-                print(y)
+            print(x, " ", dict2[x])
     except FlyInError as error:
         print("ERROR: ", error)
 

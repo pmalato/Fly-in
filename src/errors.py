@@ -62,10 +62,18 @@ class DuplicateKeysError(FlyInError):
         super().__init__(f"{message}, line {lineno}")
 
 
-class DuplicateValues(FlyInError):
-    def __init__(self, lineno: int, message: str = "Invalid file format - "
-                 "Repeated hub/connection") -> None:
-        super().__init__(f"{message}, line {lineno}")
+class DuplicateHubNameError(FlyInError):
+    def __init__(self, hub: str, lineno: int,
+                 message: str = "Invalid file format - "
+                 "Duplicate hub_name") -> None:
+        super().__init__(f"{message}, hub {hub} line {lineno}")
+
+
+class DuplicateCoordinatesError(FlyInError):
+    def __init__(self, hub: str, lineno: int,
+                 message: str = "Invalid file format - "
+                 "Duplicate coordinates found") -> None:
+        super().__init__(f"{message}, hub {hub} line {lineno}")
 
 
 class MatchError(FlyInError):
