@@ -45,6 +45,20 @@ class HubDetailsZoneError(FlyInError):
         super().__init__(f"{message}, line {lineno}")
 
 
+class NonExistentNameError(FlyInError):
+    def __init__(self, name1: str, name2: str, lineno: int,
+                 message: str = "Invalid file format -") -> None:
+        super().__init__(f"{message} {name1} or {name2} are non-existent hubs,"
+                         f" line {lineno}")
+
+
+class ConnectionDetailError(FlyInError):
+    def __init__(self, lineno: int, message: str = "Invalid file format - "
+                 "Coonection detail is optional, but should follow "
+                 "'max_link_capacity=value(int)' format") -> None:
+        super().__init__(f"{message}, line {lineno}")
+
+
 class InvalidKeyError(FlyInError):
     def __init__(self, lineno: int, message: str = "Invalid Key") -> None:
         super().__init__(f"{message}, line {lineno}")
@@ -74,6 +88,14 @@ class DuplicateCoordinatesError(FlyInError):
                  message: str = "Invalid file format - "
                  "Duplicate coordinates found") -> None:
         super().__init__(f"{message}, hub {hub} line {lineno}")
+
+
+class DuplicateConnectionError(FlyInError):
+    def __init__(
+            self, connection: str, lineno: int,
+            message: str = "Invalid file format - Duplicate connection found"
+            ) -> None:
+        super().__init__(f"{message}, connection {connection} line {lineno}")
 
 
 class MatchError(FlyInError):

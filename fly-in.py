@@ -11,7 +11,8 @@ def main() -> None:
         test = Parser()
         test.file_reader("src/maps/challenger/01_the_impossible_dream.txt")
         test.convert_hub()
-        dict2 = test.get_hubs()
+        test.convert_connection()
+        dict2 = test.get_connection()
         for x in dict2:
             print(x, " ", dict2[x])
     except FlyInError as error:
