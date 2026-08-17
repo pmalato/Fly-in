@@ -1,5 +1,6 @@
 import copy
 import re
+from pathlib import Path
 from typing import Any
 from src.errors import (
     MissingDroneCountError,
@@ -8,6 +9,7 @@ from src.errors import (
     HubError,
     HubDetailsError,
     InvalidKeyError,
+    InvalidConnectionError,
     DuplicateKeysError,
     HubDetailsZoneError,
     NonExistentNameError,
@@ -28,7 +30,7 @@ class Parser:
         self._hub: dict[str, list[Any]] = {}
         self._connect: dict[str, list[Any]] = {}
 
-    def file_reader(self, file_name: str) -> None:
+    def file_reader(self, file_name: Path) -> None:
         line_count: int = 0
         with open(file_name, "r") as file:
             text: list[str] = file.readlines()
@@ -151,6 +153,18 @@ class Parser:
                                         raise PositiveIntError(
                                             self._line_count[j])
                                 details |= {key: value}
+                            if "zone" not in details:
+                                details |= {"zone": "normal"}
+                            if "color" not in details:
+                                details |= {"color": None}
+                            if "max_drones" not in details:
+                                details |= {"max_drones": 1}
+                        else:
+                            details |= {
+                                "zone": "normal",
+                                "color": None,
+                                "max_drones": 1
+                            }
                     except ValueError:
                         raise HubError(self._line_count[j])
                 else:
@@ -172,6 +186,8 @@ class Parser:
                 match = re.match(pattern, j)
                 if match:
                     name1, name2, arg3 = match.groups()
+                    if name1 == name2:
+                        raise InvalidConnectionError(self._line_count[j])
                     if self.duplicate_connections(name1, name2) != "":
                         raise DuplicateConnectionError(
                             self.duplicate_connections(name1, name2),
@@ -199,10 +215,9 @@ class Parser:
                                 raise ConnectionDetailError(
                                     self._line_count[j])
                         detail |= {key: value}
-                    if detail != {}:
-                        self._connect |= {i: [{name1: name2}, detail]}
                     else:
-                        self._connect |= {i: [{name1: name2}]}
+                        detail |= {"max_link_capacity": 1}
+                    self._connect |= {i: [(name1, name2), detail]}
                 else:
                     raise MatchError(self._line_count[j])
 

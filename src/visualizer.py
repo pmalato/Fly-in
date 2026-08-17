@@ -1,4 +1,4 @@
-import pygame
+import pygame  # type: ignore
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))

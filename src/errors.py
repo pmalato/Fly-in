@@ -64,6 +64,13 @@ class InvalidKeyError(FlyInError):
         super().__init__(f"{message}, line {lineno}")
 
 
+class InvalidConnectionError(FlyInError):
+    def __init__(sellf, lineno: int,
+                 message: str = "Invalid file format - "
+                 "You can't link to the same hub") -> None:
+        super().__init__(f"{message}, line {lineno}")
+
+
 class MissingStartEndError(FlyInError):
     def __init__(self, message: str = "Invalid file format - "
                  "Missing 'start_hub' or 'end_hub'") -> None:

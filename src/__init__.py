@@ -1,8 +1,37 @@
 from .errors import (
-    FlyInError,
-    MissingSeperatorError
+    MissingDroneCountError,
+    MissingSeperatorError,
+    PositiveIntError,
+    HubError,
+    HubDetailsError,
+    InvalidKeyError,
+    InvalidConnectionError,
+    DuplicateKeysError,
+    HubDetailsZoneError,
+    NonExistentNameError,
+    ConnectionDetailError,
+    DuplicateHubNameError,
+    DuplicateCoordinatesError,
+    DuplicateConnectionError,
+    MissingStartEndError,
+    MatchError
 )
 
-__all__ = ["FlyInError",
-           "FormatError",
-           "MissingSeperatorError"]
+__all__ = [
+    "MissingDroneCountError",
+    "MissingSeperatorError",
+    "PositiveIntError",
+    "HubError",
+    "HubDetailsError",
+    "InvalidKeyError",
+    "InvalidConnectionError",
+    "DuplicateKeysError",
+    "HubDetailsZoneError",
+    "NonExistentNameError",
+    "ConnectionDetailError",
+    "DuplicateHubNameError",
+    "DuplicateCoordinatesError",
+    "DuplicateConnectionError",
+    "MissingStartEndError",
+    "MatchError"
+    ]
