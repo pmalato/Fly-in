@@ -43,7 +43,7 @@ class Map():
         self._end: Zone
         self._connections: list[Any] = []
         self._connection_list: list[Connection] = []
-        self._adjacent: dict[Zone, list[Connection]] = {}
+        self._adjacent: dict[Zone, list[tuple[Zone, int]]] = {}
         self._costs: dict[tuple[Zone, Zone], tuple[int, str]] = {}
         self._boundaries: tuple[int, int, int, int]
 
@@ -110,18 +110,28 @@ class Map():
         return self._connection_list
 
     def make_links(self) -> None:
-        temp: dict[Zone, list[Connection]] = {}
+        temp: dict[Zone, list[tuple[Zone, int]]] = {}
         self.store_connection_list()
         for x in self._connection_list:
             if x.get_connection()[0] in self._adjacent:
-                self._adjacent[x.get_connection()[0]] += [x]
+                self._adjacent[x.get_connection()[0]] += [
+                    (x.get_connection()[1],
+                     x.get_metadata()["max_link_capacity"])]
                 continue
-            self._adjacent |= {x.get_connection()[0]: [x]}
-        for x in self._connection_list:
-            if x.get_connection()[1] in temp:
-                temp[x.get_connection()[1]] += [x]
+            self._adjacent |= {
+                x.get_connection()[0]:
+                [(x.get_connection()[1],
+                  x.get_metadata()["max_link_capacity"])]}
+        for y in self._connection_list:
+            if y.get_connection()[1] in temp:
+                temp[y.get_connection()[1]] += [
+                    (y.get_connection()[0],
+                     y.get_metadata()["max_link_capacity"])]
                 continue
-            temp |= {x.get_connection()[1]: [x]}
+            temp |= {
+                y.get_connection()[1]:
+                [(y.get_connection()[0],
+                  y.get_metadata()["max_link_capacity"])]}
         for z in temp:
             if z in self._adjacent:
                 for k in temp[z]:
@@ -143,13 +153,14 @@ class Map():
         for x in self._adjacent:
             for y in self._adjacent[x]:
                 self._costs |= {
-                    y.get_connection(): (
-                        self.get_hub_cost(y.get_connection()[1]),
-                        y.get_connection()[1].get_metadata()["zone"])}
+                    (x, y[0]): (
+                        self.get_hub_cost(y[0]), y[0].get_metadata()["zone"])}
                 self._costs |= {
-                    y.get_connection()[::-1]: (
-                        self.get_hub_cost(y.get_connection()[::-1][1]),
-                        y.get_connection()[::-1][1].get_metadata()["zone"])}
+                    (y[0], x): (
+                        self.get_hub_cost(x), y[0].get_metadata()["zone"])}
+
+    def get_drones(self) -> int:
+        return self._drones
 
     def get_boundaries(self) -> tuple[int, int, int, int]:
         return self._boundaries
@@ -163,7 +174,7 @@ class Map():
     def get_end(self) -> Zone:
         return self._end
 
-    def get_adjacent(self) -> dict[Zone, list[Connection]]:
+    def get_adjacent(self) -> dict[Zone, list[tuple[Zone, int]]]:
         return self._adjacent
 
     def get_costs(self) -> dict[tuple[Zone, Zone], tuple[int, str]]:
