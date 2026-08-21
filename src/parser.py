@@ -1,6 +1,6 @@
+import sys
 import copy
 import re
-from pathlib import Path
 from typing import Any
 from src.errors import (
     MissingDroneCountError,
@@ -24,15 +24,16 @@ from src.errors import (
 
 class Parser:
     def __init__(self) -> None:
+        self._filename: str = sys.argv[1]
         self._line_count: dict[str, int] = {}
         self._drone_count: int = 0
         self._raw: dict[str, list[str]] = {}
         self._hub: dict[str, list[Any]] = {}
         self._connect: dict[str, list[Any]] = {}
 
-    def file_reader(self, file_name: Path) -> None:
+    def file_reader(self) -> None:
         line_count: int = 0
-        with open(file_name, "r") as file:
+        with open(self._filename, "r") as file:
             text: list[str] = file.readlines()
             for line in text:
                 line = line.strip()
@@ -220,6 +221,11 @@ class Parser:
                     self._connect |= {i: [(name1, name2), detail]}
                 else:
                     raise MatchError(self._line_count[j])
+
+    def start(self) -> None:
+        self.file_reader()
+        self.convert_hub()
+        self.convert_connection()
 
     def get_lines(self) -> dict[str, list[str]]:
         return self._raw

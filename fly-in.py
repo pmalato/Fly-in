@@ -1,3 +1,4 @@
+from src.parser import Parser
 from src.map import Map
 from src.errors import (
     FlyInError
@@ -6,13 +7,14 @@ from src.errors import (
 
 def main() -> None:
     try:
-        test = Map()
-        test.store_hubs()
-        test.store_links()
-        next = test.get_link_list()
+        parser = Parser()
+        parser.start()
+        test = Map(parser)
+        test.define_link_cost()
+        next = test.get_costs()
         for x in next:
-            print(f"{x.get_connection()[0].get_id()} - {x.get_connection()[1].get_id()},"
-                  f" {x.get_metadata()}")
+            print(f"{x[0].get_id()} - {x[1].get_id()}: ", end="")
+            print(next[x])
     except (FlyInError, IOError) as error:
         print("ERROR: ", error)
 
