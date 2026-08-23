@@ -155,9 +155,6 @@ class Map():
                 self._costs |= {
                     (x, y[0]): (
                         self.get_hub_cost(y[0]), y[0].get_metadata()["zone"])}
-                self._costs |= {
-                    (y[0], x): (
-                        self.get_hub_cost(x), y[0].get_metadata()["zone"])}
 
     def get_drones(self) -> int:
         return self._drones

@@ -109,3 +109,8 @@ class MatchError(FlyInError):
     def __init__(self, lineno: int, message: str = "Error while matching"
                  ) -> None:
         super().__init__(f"{message}, line {lineno}")
+
+
+class UnsolveableMapError(FlyInError):
+    def __init__(self, message: str = "Unsolvable map") -> None:
+        super().__init__(message)
