@@ -11,10 +11,9 @@ class Scheduler():
         self._start: Zone = map.get_start()
         self._num_drones: int = map.get_drones()
         self._path_list: list[PathFinder] = [
-            PathFinder(map) for x in range(0, self._num_drones)]
+            PathFinder(map) for _ in range(0, self._num_drones)]
         self._drone_list: list[Drone] = [
             Drone(
                 f"D{y}", self._start,
-                PathFinder(map).dijkstra_algo(self._start),
-                "wait", 30) for y in range(1, self._num_drones + 1)]
-        # warning, hardcoded max_turns
+                self._path_list[y].dijkstra_algo(self._start),
+                "wait") for y in range(1, self._num_drones + 1)]
