@@ -16,7 +16,7 @@ class PathFinder():
         self._cost = self._map.get_costs()
         self._counter: int = 0
 
-    def dijkstra_algo(self) -> list[Zone]:
+    def dijkstra_algo(self, current: Zone) -> list[Zone]:
         distance: dict[Zone, int] = {}
         predecessor: dict[Zone, Zone] = {}
         visited: set[Zone] = set()
@@ -29,8 +29,8 @@ class PathFinder():
         n_zone: Zone
         new_list: list[Zone] = []
         i: int = 0
-        distance[self._start] = 0
-        heappush(heap_queue, (cost, priority, self._counter, self._start))
+        distance[current] = 0
+        heappush(heap_queue, (cost, priority, self._counter, current))
         while self._end not in visited:
             if not heap_queue:
                 raise UnsolveableMapError()
@@ -59,7 +59,7 @@ class PathFinder():
                         heap_queue,
                         (new_cost, priority, self._counter, n_zone))
         new_list += [self._end]
-        while new_list[i] != self._start:
+        while new_list[i] != current:
             new_list += [predecessor[new_list[i]]]
             i += 1
         return new_list[::-1]
