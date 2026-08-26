@@ -43,13 +43,13 @@ class PathFinder():
             for y in self._adjancy[c_zone]:
                 n_zone = y[0]
                 if n_zone in visited or \
-                        n_zone.get_metadata()["zone"] == "blocked":
+                        n_zone.get_type() == "blocked":
                     continue
                 n_cost = self._cost[(c_zone, n_zone)][0]
                 new_cost = cost + n_cost
                 if new_cost < distance.get(n_zone, float('inf')):
                     distance[n_zone] = new_cost
-                    if n_zone.get_metadata()["zone"] == "priority":
+                    if n_zone.get_type() == "priority":
                         priority = 0
                     else:
                         priority = 1

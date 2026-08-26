@@ -16,8 +16,14 @@ class Zone():
     def get_coordinates(self) -> tuple[int, int]:
         return self._coord
 
-    def get_metadata(self) -> dict[str, Any]:
-        return self._metadata
+    def get_type(self) -> str:
+        return self._metadata["zone"]
+
+    def get_color(self) -> str:
+        return self._metadata["color"]
+
+    def get_max_drones(self) -> int:
+        return self._metadata["max_drones"]
 
 
 class Connection():
@@ -30,8 +36,8 @@ class Connection():
     def get_connection(self) -> tuple[Zone, Zone]:
         return self._connection
 
-    def get_metadata(self) -> dict[str, int]:
-        return self._metadata
+    def get_capacity(self) -> int:
+        return self._metadata["max_link_capacity"]
 
 
 class Map():
@@ -116,22 +122,22 @@ class Map():
             if x.get_connection()[0] in self._adjacent:
                 self._adjacent[x.get_connection()[0]] += [
                     (x.get_connection()[1],
-                     x.get_metadata()["max_link_capacity"])]
+                     x.get_capacity())]
                 continue
             self._adjacent |= {
                 x.get_connection()[0]:
                 [(x.get_connection()[1],
-                  x.get_metadata()["max_link_capacity"])]}
+                  x.get_capacity())]}
         for y in self._connection_list:
             if y.get_connection()[1] in temp:
                 temp[y.get_connection()[1]] += [
                     (y.get_connection()[0],
-                     y.get_metadata()["max_link_capacity"])]
+                     y.get_capacity())]
                 continue
             temp |= {
                 y.get_connection()[1]:
                 [(y.get_connection()[0],
-                  y.get_metadata()["max_link_capacity"])]}
+                  y.get_capacity())]}
         for z in temp:
             if z in self._adjacent:
                 for k in temp[z]:
@@ -140,10 +146,10 @@ class Map():
             self._adjacent |= {z: temp[z]}
 
     def get_hub_cost(self, zone: Zone) -> int:
-        if zone.get_metadata()["zone"] == "normal" or\
-                zone.get_metadata()["zone"] == "priority":
+        if zone.get_type() == "normal" or\
+                zone.get_type() == "priority":
             return 1
-        elif zone.get_metadata()["zone"] == "restricted":
+        elif zone.get_type() == "restricted":
             return 2
         else:
             return -1
@@ -154,7 +160,7 @@ class Map():
             for y in self._adjacent[x]:
                 self._costs |= {
                     (x, y[0]): (
-                        self.get_hub_cost(y[0]), y[0].get_metadata()["zone"])}
+                        self.get_hub_cost(y[0]), y[0].get_type())}
 
     def get_drones(self) -> int:
         return self._drones
@@ -164,6 +170,9 @@ class Map():
 
     def get_hubs(self) -> list[Zone]:
         return self._hub_list
+
+    def get_connections(self) -> list[Connection]:
+        return self._connection_list
 
     def get_start(self) -> Zone:
         return self._start
