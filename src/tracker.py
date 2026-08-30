@@ -7,7 +7,7 @@ class Tracker():
         self._map: Map = map
         self._hubs: list[Zone] = map.get_hubs()
         self._links: list[Connection] = map.get_connections()
-        self._turns: int = 0
+        self._turn: int = 0
         self._zone_occupancy: dict[Zone, set[Drone]]
         self._zone_occupancy = {x: set() for x in self._hubs}
         self._link_occupancy: dict[Connection, set[tuple[Drone, int]]]
@@ -37,9 +37,15 @@ class Tracker():
 
     def advance_turn(self) -> list[tuple[Drone, Connection]]:
         successful_moves: list[tuple[Drone, Connection]] = []
-        self._turns += 1
+        self._turn += 1
         for key, value in self._link_occupancy.items():
             for drone, turn in value:
-                if turn == self._turns:
+                if turn == self._turn:
                     successful_moves += [(drone, key)]
         return successful_moves
+
+    def get_turn(self) -> int:
+        return self._turn
+
+    def get_link(self) -> list[Connection]:
+        return self._links

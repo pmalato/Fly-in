@@ -65,7 +65,7 @@ class InvalidKeyError(FlyInError):
 
 
 class InvalidConnectionError(FlyInError):
-    def __init__(sellf, lineno: int,
+    def __init__(self, lineno: int,
                  message: str = "Invalid file format - "
                  "You can't link to the same hub") -> None:
         super().__init__(f"{message}, line {lineno}")

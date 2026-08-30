@@ -14,7 +14,8 @@ from .errors import (
     DuplicateCoordinatesError,
     DuplicateConnectionError,
     MissingStartEndError,
-    MatchError
+    MatchError,
+    UnsolveableMapError
 )
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     "DuplicateCoordinatesError",
     "DuplicateConnectionError",
     "MissingStartEndError",
-    "MatchError"
+    "MatchError",
+    "UnsolveableMapError"
     ]

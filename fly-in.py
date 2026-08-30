@@ -15,7 +15,7 @@ def main() -> None:
         for x in next:
             print(f"{x[0].get_id()} - {x[1].get_id()}: ", end="")
             print(next[x])
-    except (FlyInError, IOError) as error:
+    except (FlyInError, IOError, LookupError) as error:
         print("ERROR: ", error)
 
 

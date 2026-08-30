@@ -17,21 +17,25 @@ class Zone():
         return self._coord
 
     def get_type(self) -> str:
-        return self._metadata["zone"]
+        return str(self._metadata["zone"])
 
     def get_color(self) -> str:
-        return self._metadata["color"]
+        return str(self._metadata["color"])
 
     def get_max_drones(self) -> int:
-        return self._metadata["max_drones"]
+        return int(self._metadata["max_drones"])
 
 
 class Connection():
     def __init__(
-            self, zone1: Zone, zone2: Zone,
+            self, id: str, zone1: Zone, zone2: Zone,
             metadata: dict[str, int]) -> None:
+        self._id = id
         self._connection: tuple[Zone, Zone] = zone1, zone2
         self._metadata: dict[str, int] = metadata
+
+    def get_id(self) -> str:
+        return self._id
 
     def get_connection(self) -> tuple[Zone, Zone]:
         return self._connection
@@ -108,11 +112,13 @@ class Map():
         Hub1: Zone
         Hub2: Zone
         data: dict[str, int]
+        i: int = 1
         for x in self._connections:
             Hub1 = self.find_hub(x[0][0])
             Hub2 = self.find_hub(x[0][1])
             data = x[1]
-            self._connection_list += [Connection(Hub1, Hub2, data)]
+            self._connection_list += [Connection(f"link{i}", Hub1, Hub2, data)]
+            i += 1
         return self._connection_list
 
     def make_links(self) -> None:

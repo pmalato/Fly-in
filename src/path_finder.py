@@ -4,6 +4,8 @@ from heapq import heappop, heappush
 
 
 class PathFinder():
+    PENALTY: int = 1000
+
     def __init__(self, map: Map) -> None:
         self._map: Map = map
         self._drones = self._map.get_drones()
@@ -15,6 +17,30 @@ class PathFinder():
         self._cost: dict[tuple[Zone, Zone], tuple[int, str]]
         self._cost = self._map.get_costs()
         self._counter: int = 0
+        self._zone_load: dict[Zone, int] = {}
+        self._link_load: dict[tuple[Zone, Zone], int] = {}
+
+    def edge_cost(self, czone: Zone, nzone: Zone, cost: int) -> int:
+        base: int = self._cost[(czone, nzone)][0]
+        zone_full: bool = (
+            nzone != self._end
+            and self._zone_load.get(nzone, 0) >= nzone.get_max_drones())
+        link: tuple[Zone, Zone]
+        if (czone, nzone) in self._link_load:
+            link = czone, nzone
+        else:
+            link = nzone, czone
+        link_full: bool = self._link_load.get(link, 0) >= cost
+        penalty: int = self.PENALTY if (zone_full or link_full) else 0
+        return base + penalty
+
+    def reserve_path(self, path: list[Zone]) -> None:
+        for i in range(0, len(path) - 1):
+            czone, nzone = path[i], path[i + 1]
+            if nzone != self._end:
+                self._zone_load[nzone] = self._zone_load.get(nzone, 0) + 1
+            key: tuple[Zone, Zone] = czone, nzone
+            self._link_load[key] = self._link_load.get(key, 0) + 1
 
     def dijkstra_algo(self, current: Zone) -> list[Zone]:
         distance: dict[Zone, int] = {}
@@ -41,11 +67,11 @@ class PathFinder():
             if c_zone == self._end:
                 break
             for y in self._adjancy[c_zone]:
-                n_zone = y[0]
+                n_zone, link_cost = y
                 if n_zone in visited or \
                         n_zone.get_type() == "blocked":
                     continue
-                n_cost = self._cost[(c_zone, n_zone)][0]
+                n_cost = self.edge_cost(c_zone, n_zone, link_cost)
                 new_cost = cost + n_cost
                 if new_cost < distance.get(n_zone, float('inf')):
                     distance[n_zone] = new_cost

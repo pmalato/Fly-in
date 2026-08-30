@@ -170,6 +170,8 @@ class Parser:
                         raise HubError(self._line_count[j])
                 else:
                     raise MatchError(self._line_count[j])
+                if i == "start_hub" or i == "end_hub":
+                    details["max_drones"] = sys.maxsize
                 self._hub |= {i: [name, x, y, details]}
 
     def convert_connection(self) -> None:

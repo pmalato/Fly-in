@@ -10,11 +10,11 @@ class Drone():
         self._id: str = id
         self._czone: Zone | None = c_zone
         self._state: str = Drone.WAIT
-        self._path: list[Zone]
-        self._nzone: Zone | None
-        self._goal: Zone
-        self._path_i: int
-        self._arrival_turn: int
+        self._path: list[Zone] = []
+        self._nzone: Zone | None = None
+        self._goal: Zone | None = None
+        self._path_i: int = -1
+        self._arrival_turn: int = 0
 
     def set_path(self, new_path: list[Zone]) -> None:
         self._path = new_path
@@ -30,16 +30,31 @@ class Drone():
 
     def advance(self) -> None:
         self._path_i += 1
-        if self._path_i < len(self._path):
+        if self._path_i + 1 < len(self._path):
             self._nzone = self._path[self._path_i + 1]
         else:
             self._nzone = None
 
     def stop_transit(self) -> None:
         self._czone = self._nzone
-        self._nzone = None
         self._arrival_turn = -1
         self._state = Drone.WAIT
+        self.advance()
+
+    def finish(self) -> None:
+        self._path = []
+        self._nzone = None
+        self._path_i = 0
+        self._state = Drone.ARRIVED
 
     def get_id(self) -> str:
         return self._id
+
+    def get_state(self) -> str:
+        return self._state
+
+    def get_current(self) -> Zone | None:
+        return self._czone
+
+    def get_next(self) -> Zone | None:
+        return self._nzone
