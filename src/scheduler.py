@@ -48,9 +48,9 @@ class Scheduler():
         cost: int
         nzone: Zone | None
         temp_link: Connection | None
+        if not self.check_everyone():
+            print(f"Turn {self._count + 1}:", end=" ")
         for x in self._drone_list:
-            if x.get_state() == Drone.IN_TRANSIT:
-                continue
             czone = x.get_current()
             nzone = x.get_next()
             if not czone or not nzone:
@@ -58,11 +58,17 @@ class Scheduler():
             temp_link = self.find_link(czone, nzone)
             if not temp_link:
                 continue
+            cost = self._map.get_hub_cost(nzone)
+            if x.get_state() == Drone.IN_TRANSIT:
+                print(
+                    f"{x.get_id()}-"
+                    f"{nzone.get_id()}",
+                    end=" ")
+                continue
             if not self._tracker.can_enter_zone(nzone):
                 continue
             if not self._tracker.can_use_connection(temp_link):
                 continue
-            cost = self._map.get_hub_cost(nzone)
             arrival_turn = self._tracker.get_turn() + cost
             self._tracker.unlock_zone(czone, x)
             self._tracker.lock_zone(nzone, x)
@@ -83,6 +89,8 @@ class Scheduler():
         while not self.check_everyone():
             arrived = self._tracker.advance_turn()
             self.resolve_arrivals(arrived)
+            if self.check_everyone():
+                break
             self.waiting_drones()
             print()
             self._count += 1
