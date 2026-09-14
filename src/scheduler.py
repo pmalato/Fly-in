@@ -16,6 +16,7 @@ class Scheduler():
             f"D{y}", self._start) for y in range(1, self._num_drones + 1)]
         for x in self._drone_list:
             self._tracker.lock_zone(self._start, x)
+        self._count: int = 0
 
     def check_everyone(self) -> bool:
         for x in self._drone_list:
@@ -70,7 +71,8 @@ class Scheduler():
             x.start_transit(nzone, arrival_turn)
             print(
                 f"{x.get_id()}-"
-                f"{temp_link.get_id() if cost > 1 else nzone.get_id()}")
+                f"{temp_link.get_id() if cost > 1 else nzone.get_id()}",
+                end=" ")
 
     def run(self) -> None:
         arrived: list[tuple[Drone, Connection]] = []
@@ -82,3 +84,8 @@ class Scheduler():
             arrived = self._tracker.advance_turn()
             self.resolve_arrivals(arrived)
             self.waiting_drones()
+            print()
+            self._count += 1
+
+    def get_count(self) -> int:
+        return self._count

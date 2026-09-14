@@ -1,5 +1,7 @@
 from src.parser import Parser
 from src.map import Map
+from src.tracker import Tracker
+from src.scheduler import Scheduler
 from src.errors import (
     FlyInError
 )
@@ -7,14 +9,14 @@ from src.errors import (
 
 def main() -> None:
     try:
-        parser = Parser()
+        parser: Parser = Parser()
         parser.start()
-        test = Map(parser)
-        test.define_link_cost()
-        next = test.get_costs()
-        for x in next:
-            print(f"{x[0].get_id()} - {x[1].get_id()}: ", end="")
-            print(next[x])
+        map: Map = Map(parser)
+        map.define_link_cost()
+        tracker: Tracker = Tracker(map)
+        scheduler: Scheduler = Scheduler(tracker, map)
+        scheduler.run()
+        print(f"Turn count: {scheduler.get_count()}")
     except (FlyInError, IOError, LookupError) as error:
         print("ERROR: ", error)
 
