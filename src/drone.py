@@ -15,6 +15,13 @@ class Drone():
         self._goal: Zone | None = None
         self._path_i: int = -1
         self._arrival_turn: int = 0
+        self._wait_turns: int = 0
+
+    def wait(self) -> None:
+        self._wait_turns += 1
+
+    def reset_wait(self) -> None:
+        self._wait_turns = 0
 
     def set_path(self, new_path: list[Zone]) -> None:
         self._path = new_path
@@ -53,8 +60,14 @@ class Drone():
     def get_state(self) -> str:
         return self._state
 
+    def get_wait_turns(self) -> int:
+        return self._wait_turns
+
     def get_current(self) -> Zone | None:
         return self._czone
+
+    def get_remaining_path(self) -> list[Zone]:
+        return self._path[self._path_i:]
 
     def get_next(self) -> Zone | None:
         return self._nzone

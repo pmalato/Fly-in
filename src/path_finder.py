@@ -4,8 +4,6 @@ from heapq import heappop, heappush
 
 
 class PathFinder():
-    PENALTY: int = 1000
-
     def __init__(self, map: Map) -> None:
         self._map: Map = map
         self._drones = self._map.get_drones()
@@ -22,17 +20,18 @@ class PathFinder():
 
     def edge_cost(self, czone: Zone, nzone: Zone, cost: int) -> int:
         base: int = self._cost[(czone, nzone)][0]
-        zone_full: bool = (
-            nzone != self._end
-            and self._zone_load.get(nzone, 0) >= nzone.get_max_drones())
         link: tuple[Zone, Zone]
+        zone_wait: int = 0
+        if nzone != self._end:
+            capacity: int = nzone.get_max_drones()
+            load: int = self._zone_load.get(nzone, 0)
+            zone_wait = load // capacity
         if (czone, nzone) in self._link_load:
             link = czone, nzone
         else:
             link = nzone, czone
-        link_full: bool = self._link_load.get(link, 0) >= cost
-        penalty: int = self.PENALTY if (zone_full or link_full) else 0
-        return base + penalty
+        link_wait: int = self._link_load.get(link, 0) // cost
+        return base + max(zone_wait, link_wait)
 
     def reserve_path(self, path: list[Zone]) -> None:
         for i in range(0, len(path) - 1):
@@ -41,6 +40,14 @@ class PathFinder():
                 self._zone_load[nzone] = self._zone_load.get(nzone, 0) + 1
             key: tuple[Zone, Zone] = czone, nzone
             self._link_load[key] = self._link_load.get(key, 0) + 1
+
+    def release_path(self, path: list[Zone]) -> None:
+        for i in range(0, len(path) - 1):
+            czone, nzone = path[i], path[i + 1]
+            if nzone != self._end:
+                self._zone_load[nzone] = self._zone_load.get(nzone, 0) - 1
+            key: tuple[Zone, Zone] = czone, nzone
+            self._link_load[key] = self._link_load.get(key, 0) - 1
 
     def dijkstra_algo(self, current: Zone) -> list[Zone]:
         distance: dict[Zone, int] = {}

@@ -1,3 +1,4 @@
+from src.errors import UnsolveableMapError
 from src.drone import Drone
 from src.map import Map, Zone, Connection
 from src.tracker import Tracker
@@ -5,6 +6,9 @@ from src.path_finder import PathFinder
 
 
 class Scheduler():
+    MAX_WAIT: int = 3
+    MAX_TURNS: int = 500
+
     def __init__(self, tracker: Tracker, map: Map) -> None:
         self._tracker: Tracker = tracker
         self._map: Map = map
@@ -65,7 +69,11 @@ class Scheduler():
                     f"{nzone.get_id()}",
                     end=" ")
                 continue
-            if not self._tracker.can_enter_zone(nzone):
+            if not self._tracker.can_enter_zone(nzone) or \
+                    not self._tracker.can_use_connection(temp_link):
+                x.wait()
+                if x.get_wait_turns() >= self.MAX_WAIT:
+                    self.replan(x)
                 continue
             if not self._tracker.can_use_connection(temp_link):
                 continue
@@ -87,6 +95,9 @@ class Scheduler():
             self._path_object.reserve_path(path)
             x.set_path(path)
         while not self.check_everyone():
+            if self._count > self.MAX_TURNS:
+                raise UnsolveableMapError(
+                    "Deadlock: Drones stuck for too many turns")
             arrived = self._tracker.advance_turn()
             self.resolve_arrivals(arrived)
             if self.check_everyone():
@@ -94,6 +105,16 @@ class Scheduler():
             self.waiting_drones()
             print()
             self._count += 1
+
+    def replan(self, drone: Drone) -> None:
+        czone: Zone | None = drone.get_current()
+        if not czone:
+            return
+        self._path_object.release_path(drone.get_remaining_path())
+        new_path: list[Zone] = self._path_object.dijkstra_algo(czone)
+        self._path_object.reserve_path(new_path)
+        drone.set_path(new_path)
+        drone.reset_wait()
 
     def get_count(self) -> int:
         return self._count
