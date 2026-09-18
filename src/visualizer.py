@@ -17,9 +17,6 @@ class Display():
         self._screen: Surface = pygame.display.set_mode((1920, 1080))
         self._running: bool = True
 
-    def set_images(self) -> None:
-        ...
-
     def set_edges(self) -> None:
         listx: list[int] = [x.get_coordinates()[0] for x in self._hubs]
         listy: list[int] = [y.get_coordinates()[1] for y in self._hubs]
