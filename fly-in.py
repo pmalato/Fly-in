@@ -1,5 +1,6 @@
 from src.parser import Parser
 from src.map import Map, Zone, Connection
+from src.drone import Drone
 from src.tracker import Tracker
 from src.scheduler import Scheduler
 from src.visualizer import Display
@@ -18,9 +19,10 @@ def main() -> None:
         map.define_link_cost()
         tracker: Tracker = Tracker(map)
         scheduler: Scheduler = Scheduler(tracker, map)
+        drones: list[Drone] = scheduler.get_drones()
         scheduler.run()
         print(f"Turn count: {scheduler.get_count()}")
-        display: Display = Display(hubs, links)
+        display: Display = Display(drones, hubs, links)
         display.exe()
     except (FlyInError, IOError, LookupError) as error:
         print("ERROR: ", error)

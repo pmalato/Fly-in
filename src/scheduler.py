@@ -116,5 +116,8 @@ class Scheduler():
         drone.set_path(new_path)
         drone.reset_wait()
 
+    def get_drones(self) -> list[Drone]:
+        return self._drone_list
+
     def get_count(self) -> int:
         return self._count
