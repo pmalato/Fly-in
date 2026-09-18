@@ -4,7 +4,7 @@ VENV = ./fly-in.venv/bin
 all: run
 
 run:
-	$(VENV)/python3 fly-in.py
+	$(VENV)/python3 fly-in.py $(ARGS)
 
 install:
 	test -d fly-in.venv || python3 -m venv fly-in.venv

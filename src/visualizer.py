@@ -8,9 +8,16 @@ class Display():
         self._bg_img = pygame.image.load("./src/images/Sumeru.webp")
         self._hubs: list[Zone] = hubs
         self._links: list[Connection] = links
+        self._edges: tuple[int, int, int, int]
         pygame.init()
-        self._screen: Surface = pygame.display.set_mode((1800, 1800))
+        self._size: tuple[int, int] = 1800, 1800
+        self._screen: Surface = pygame.display.set_mode(self._size)
         self._running: bool = True
+
+    def set_edges(self) -> None:
+        listx: list[int] = [x.get_coordinates()[0] for x in self._hubs]
+        listy: list[int] = [y.get_coordinates()[1] for y in self._hubs]
+        self._edges = (max(listx), max(listy), min(listx), min(listy))
 
     def scale(self, coords: tuple[int, int]) -> None:
         ...
