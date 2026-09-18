@@ -1,10 +1,15 @@
+import random
 from src.map import Zone, Connection
+from src.drone import Drone
 import pygame
 from pygame.surface import Surface
 
 
 class Display():
-    def __init__(self, hubs: list[Zone], links: list[Connection]) -> None:
+    def __init__(
+            self, drones: list[Drone],
+            hubs: list[Zone],
+            links: list[Connection]) -> None:
         self._bg_img: Surface = pygame.image.load("./src/images/Sumeru.webp")
         self._drone1: Surface = pygame.image.load(
             "src/images/floating_anemo_fungus.png")
@@ -12,6 +17,7 @@ class Display():
             "src/images/floating_dendro_fungus.png")
         self._drone3: Surface = pygame.image.load(
             "src/images/floating_hydro_fungus.png")
+        self._drones: list[Drone] = drones
         self._hubs: list[Zone] = hubs
         self._links: list[Connection] = links
         self._edges: tuple[int, int, int, int]
@@ -75,5 +81,7 @@ class Display():
                     pygame.draw.circle(
                         self._screen, hub.get_color(),
                         (x, y), 15)
+            for drone in self._drones:
+                ...
             pygame.display.flip()
         pygame.quit()
