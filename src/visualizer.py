@@ -9,32 +9,49 @@ class Display():
         self._hubs: list[Zone] = hubs
         self._links: list[Connection] = links
         self._edges: tuple[int, int, int, int]
+        self._width: int = 0
+        self._height: int = 0
         pygame.init()
-        self._size: tuple[int, int] = 1800, 1800
-        self._screen: Surface = pygame.display.set_mode(self._size)
+        self._screen: Surface = pygame.display.set_mode((800, 600))
         self._running: bool = True
 
     def set_edges(self) -> None:
         listx: list[int] = [x.get_coordinates()[0] for x in self._hubs]
         listy: list[int] = [y.get_coordinates()[1] for y in self._hubs]
         self._edges = (max(listx), max(listy), min(listx), min(listy))
+        self._width = self._edges[0] - self._edges[2]
+        self._height = self._edges[1] - self._edges[3]
+        if not self._width:
+            self._width = 1
+        if not self._height:
+            self._height = 1
 
-    def scale(self, coords: tuple[int, int]) -> None:
-        ...
+    def scale(self, coords: tuple[int, int]) -> tuple[float, float]:
+        swidth: float
+        sheight: float
+        cx: float = self._width / 2
+        cy: float = self._height / 2
+        x: float = coords[0] - cx
+        y: float = coords[1] - cy
+        swidth, sheight = self._screen.get_size()
+        return swidth / 2 + x * swidth * 0.09, sheight / 2 + y * sheight * 0.09
 
     def exe(self) -> None:
-        zone1: tuple[int, int]
-        zone2: tuple[int, int]
-        x: int
-        y: int
+        zone1: tuple[float, float]
+        zone2: tuple[float, float]
+        x: float
+        y: float
         while self._running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self._running = False
-            self._screen.fill("brown")
+            self._screen.fill("black")
+            for link in self._links:
+                zone1 = self.scale(link.get_connection()[0].get_coordinates())
+                zone2 = self.scale(link.get_connection()[1].get_coordinates())
+                pygame.draw.line(self._screen, "white", zone1, zone2, 2)
             for hub in self._hubs:
-                x = hub.get_coordinates()[0] * 10
-                y = hub.get_coordinates()[1] * 10
+                x, y = self.scale(hub.get_coordinates())
                 if hub.get_color() == "none":
                     pygame.draw.circle(
                         self._screen, "purple", (x, y), 10)
@@ -42,9 +59,5 @@ class Display():
                     pygame.draw.circle(
                         self._screen, hub.get_color(),
                         (x, y), 10)
-            for link in self._links:
-                zone1 = link.get_connection()[0].get_coordinates()
-                zone2 = link.get_connection()[1].get_coordinates()
-                pygame.draw.line(self._screen, "white", zone1, zone2, 2)
             pygame.display.flip()
         pygame.quit()
