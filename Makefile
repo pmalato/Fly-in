@@ -20,6 +20,10 @@ clean:
 	rm -fr src/__pycache__
 	clear
 
+fclean:
+	rm -fr fly-in.venv/
+	make clean
+
 lint:
 	python3 -m flake8 .
 	python3 -m mypy . $(LFLAGS)
@@ -28,4 +32,4 @@ lint-strict:
 	python3 -m flake8 .
 	python3 -m mypy --strict .
 
-.PHONY: all run install debug clean lint lint-strict
+.PHONY: all run install debug clean fclean lint lint-strict

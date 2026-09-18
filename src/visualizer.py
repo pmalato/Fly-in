@@ -5,7 +5,13 @@ from pygame.surface import Surface
 
 class Display():
     def __init__(self, hubs: list[Zone], links: list[Connection]) -> None:
-        self._bg_img = pygame.image.load("./src/images/Sumeru.webp")
+        self._bg_img: Surface = pygame.image.load("./src/images/Sumeru.webp")
+        self._drone1: Surface = pygame.image.load(
+            "src/images/floating_anemo_fungus.png")
+        self._drone2: Surface = pygame.image.load(
+            "src/images/floating_dendro_fungus.png")
+        self._drone3: Surface = pygame.image.load(
+            "src/images/floating_hydro_fungus.png")
         self._hubs: list[Zone] = hubs
         self._links: list[Connection] = links
         self._edges: tuple[int, int, int, int]
