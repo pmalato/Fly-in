@@ -1,6 +1,7 @@
 from random import Random
 from src.map import Zone, Connection
 from src.drone import Drone
+from src.scheduler import Scheduler
 import pygame
 from pygame.surface import Surface
 
@@ -70,7 +71,7 @@ class Display():
                         center=self.scale(
                             drone.get_current().get_coordinates())))
 
-    def exe(self, scheduler) -> None:
+    def exe(self, scheduler: Scheduler) -> None:
         zone1: tuple[float, float]
         zone2: tuple[float, float]
         x: float

@@ -3,7 +3,7 @@ from src.drone import Drone
 from src.map import Map, Zone, Connection
 from src.tracker import Tracker
 from src.path_finder import PathFinder
-from typing import Generator
+from typing import Any, Generator
 
 
 class Scheduler():
@@ -96,7 +96,7 @@ class Scheduler():
                 f"{temp_link.get_id() if cost > 1 else nzone.get_id()}",
                 end=" ")
 
-    def run(self) -> Generator | None:
+    def run(self) -> Generator[Any, None, None]:
         arrived: list[tuple[Drone, Connection]] = []
         for x in self._drone_list:
             path: list[Zone] = self._path_object.dijkstra_algo(self._start)
