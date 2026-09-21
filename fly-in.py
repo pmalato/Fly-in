@@ -20,10 +20,11 @@ def main() -> None:
         tracker: Tracker = Tracker(map)
         scheduler: Scheduler = Scheduler(tracker, map)
         drones: list[Drone] = scheduler.get_drones()
-        scheduler.run()
-        print(f"Turn count: {scheduler.get_count()}")
-        display: Display = Display(drones, hubs, links)
-        display.exe()
+        display: Display = Display(drones, hubs, links, 0)
+        # for s in scheduler.run():
+        display.exe(scheduler)
+        # turns: int = scheduler.get_count()
+        # print(f"Turn count: {turns}")
     except (FlyInError, IOError, LookupError) as error:
         print("ERROR: ", error)
 

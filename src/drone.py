@@ -19,6 +19,7 @@ class Drone():
 
     def wait(self) -> None:
         self._wait_turns += 1
+        self._traveled += [self._czone]
 
     def reset_wait(self) -> None:
         self._wait_turns = 0
@@ -29,6 +30,7 @@ class Drone():
         self._path_i = 0
         self._nzone = self._path[1]
         self._goal = self._path[-1]
+        self._traveled: list[Zone | None] = []
 
     def start_transit(self, next_zone: Zone, arrival_turn: int) -> None:
         self._state = Drone.IN_TRANSIT
@@ -43,6 +45,7 @@ class Drone():
             self._nzone = None
 
     def stop_transit(self) -> None:
+        self._traveled += [self._czone]
         self._czone = self._nzone
         self._arrival_turn = -1
         self._state = Drone.WAIT
@@ -71,3 +74,6 @@ class Drone():
 
     def get_next(self) -> Zone | None:
         return self._nzone
+
+    def get_walked(self) -> list[Zone | None]:
+        return self._traveled

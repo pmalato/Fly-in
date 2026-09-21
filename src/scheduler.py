@@ -3,6 +3,7 @@ from src.drone import Drone
 from src.map import Map, Zone, Connection
 from src.tracker import Tracker
 from src.path_finder import PathFinder
+from typing import Generator
 
 
 class Scheduler():
@@ -88,13 +89,14 @@ class Scheduler():
                 f"{temp_link.get_id() if cost > 1 else nzone.get_id()}",
                 end=" ")
 
-    def run(self) -> None:
+    def run(self) -> Generator | None:
         arrived: list[tuple[Drone, Connection]] = []
         for x in self._drone_list:
             path: list[Zone] = self._path_object.dijkstra_algo(self._start)
             self._path_object.reserve_path(path)
             x.set_path(path)
         while not self.check_everyone():
+            yield
             if self._count > self.MAX_TURNS:
                 raise UnsolveableMapError(
                     "Deadlock: Drones stuck for too many turns")
@@ -105,6 +107,7 @@ class Scheduler():
             self.waiting_drones()
             print()
             self._count += 1
+        return None
 
     def replan(self, drone: Drone) -> None:
         czone: Zone | None = drone.get_current()
