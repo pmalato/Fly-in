@@ -8,18 +8,17 @@ class Drone():
 
     def __init__(self, id: str, c_zone: Zone) -> None:
         self._id: str = id
-        self._czone: Zone | None = c_zone
+        self._czone: Zone = c_zone
         self._state: str = Drone.WAIT
         self._path: list[Zone] = []
-        self._nzone: Zone | None = None
-        self._goal: Zone | None = None
+        self._nzone: Zone
+        self._goal: Zone
         self._path_i: int = -1
         self._arrival_turn: int = 0
         self._wait_turns: int = 0
 
     def wait(self) -> None:
         self._wait_turns += 1
-        self._traveled += [self._czone]
 
     def reset_wait(self) -> None:
         self._wait_turns = 0
@@ -30,7 +29,6 @@ class Drone():
         self._path_i = 0
         self._nzone = self._path[1]
         self._goal = self._path[-1]
-        self._traveled: list[Zone | None] = []
 
     def start_transit(self, next_zone: Zone, arrival_turn: int) -> None:
         self._state = Drone.IN_TRANSIT
@@ -41,11 +39,8 @@ class Drone():
         self._path_i += 1
         if self._path_i + 1 < len(self._path):
             self._nzone = self._path[self._path_i + 1]
-        else:
-            self._nzone = None
 
     def stop_transit(self) -> None:
-        self._traveled += [self._czone]
         self._czone = self._nzone
         self._arrival_turn = -1
         self._state = Drone.WAIT
@@ -53,7 +48,6 @@ class Drone():
 
     def finish(self) -> None:
         self._path = []
-        self._nzone = None
         self._path_i = 0
         self._state = Drone.ARRIVED
 
@@ -66,14 +60,11 @@ class Drone():
     def get_wait_turns(self) -> int:
         return self._wait_turns
 
-    def get_current(self) -> Zone | None:
+    def get_current(self) -> Zone:
         return self._czone
 
     def get_remaining_path(self) -> list[Zone]:
         return self._path[self._path_i:]
 
-    def get_next(self) -> Zone | None:
+    def get_next(self) -> Zone:
         return self._nzone
-
-    def get_walked(self) -> list[Zone | None]:
-        return self._traveled

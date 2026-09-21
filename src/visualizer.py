@@ -1,5 +1,5 @@
 from random import Random
-from src.map import Zone, Connection, Map
+from src.map import Zone, Connection
 from src.drone import Drone
 import pygame
 from pygame.surface import Surface
@@ -22,11 +22,9 @@ class Display():
         self._drone2 = pygame.transform.scale(self._drone2, (50, 50))
         self._drone3 = pygame.transform.scale(self._drone3, (50, 50))
         self._drones: list[Drone] = drones
-        self._drone_paths: list[list[Zone | None]] = []
         self._hubs: list[Zone] = hubs
         self._links: list[Connection] = links
         self._turns: int = turns
-        # self.drone_paths()
         self._drone_img: dict[str, Surface] = {
             x.get_id(): Random(int(x.get_id().removeprefix('D'))).choice(
                 [self._drone1, self._drone2,
@@ -65,14 +63,12 @@ class Display():
 
     def display_drone(self) -> None:
         for drone in self._drones:
-            self._screen.blit(
-                self._drone_img[drone.get_id()],
-                self._drone_img[drone.get_id()].get_rect(
-                    center=self.scale(drone.get_current().get_coordinates())))
-
-    def drone_paths(self) -> None:
-        for drone in self._drones:
-            self._drone_paths += [drone.get_walked()]
+            if drone.get_current():
+                self._screen.blit(
+                    self._drone_img[drone.get_id()],
+                    self._drone_img[drone.get_id()].get_rect(
+                        center=self.scale(
+                            drone.get_current().get_coordinates())))
 
     def exe(self, scheduler) -> None:
         zone1: tuple[float, float]
@@ -89,8 +85,13 @@ class Display():
                         self._running = False
                     if event.key == pygame.K_F11:
                         pygame.display.toggle_fullscreen()
-                    if event.key == pygame.K_SPACE:
-                        next(gen)
+                    if event.key == pygame.K_SPACE or \
+                            event.key == pygame.K_RIGHT:
+                        try:
+                            next(gen)
+                        except StopIteration:
+                            print("Iteration over, press ESC or close the GUI")
+                            break
             self._screen.blit(self._bg_img, (0, 0))
             for link in self._links:
                 zone1 = self.scale(link.get_connection()[0].get_coordinates())

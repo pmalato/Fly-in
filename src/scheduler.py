@@ -83,7 +83,14 @@ class Scheduler():
             self._tracker.lock_zone(nzone, x)
             self._tracker.lock_connection(
                 x, temp_link, arrival_turn)
-            x.start_transit(nzone, arrival_turn)
+            if cost == 1:
+                x.stop_transit()
+                self._tracker.unlock_connection(x, temp_link, arrival_turn)
+                if x.get_current() == self._goal:
+                    x.finish()
+                print(f"{x.get_id()}-{nzone.get_id()}", end=" ")
+            else:
+                x.start_transit(nzone, arrival_turn)
             print(
                 f"{x.get_id()}-"
                 f"{temp_link.get_id() if cost > 1 else nzone.get_id()}",
@@ -96,7 +103,6 @@ class Scheduler():
             self._path_object.reserve_path(path)
             x.set_path(path)
         while not self.check_everyone():
-            yield
             if self._count > self.MAX_TURNS:
                 raise UnsolveableMapError(
                     "Deadlock: Drones stuck for too many turns")
@@ -107,6 +113,7 @@ class Scheduler():
             self.waiting_drones()
             print()
             self._count += 1
+            yield
         return None
 
     def replan(self, drone: Drone) -> None:
