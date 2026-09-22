@@ -69,6 +69,7 @@ class Drone():
             self._nzone = self._path[self._path_i + 1]
 
     def update_from_link(self) -> None:
+        """updates the zone for the drone who has arrived from a link"""
         self._czone = self._nzone
 
     def stop_transit(self) -> None:
