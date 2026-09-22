@@ -68,6 +68,9 @@ class Drone():
         if self._path_i + 1 < len(self._path):
             self._nzone = self._path[self._path_i + 1]
 
+    def update_from_link(self) -> None:
+        self._czone = self._nzone
+
     def stop_transit(self) -> None:
         """Complete the current transit, arriving at the next zone.
 

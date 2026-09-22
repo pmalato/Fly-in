@@ -113,6 +113,7 @@ class Scheduler():
                 continue
             cost = self._map.get_hub_cost(nzone)
             if x.get_state() == Drone.IN_TRANSIT:
+                x.update_from_link()
                 print(
                     f"{x.get_id()}-"
                     f"{nzone.get_id()}",
@@ -137,11 +138,12 @@ class Scheduler():
                 if x.get_current() == self._goal:
                     x.finish()
                 print(f"{x.get_id()}-{nzone.get_id()}", end=" ")
+                continue
             else:
                 x.start_transit(nzone, arrival_turn)
             print(
                 f"{x.get_id()}-"
-                f"{temp_link.get_id() if cost > 1 else nzone.get_id()}",
+                f"{temp_link.get_id() if cost > 1 else czone.get_id()}",
                 end=" ")
 
     def run(self) -> Generator[Any, None, None]:
