@@ -4,7 +4,20 @@ from heapq import heappop, heappush
 
 
 class PathFinder():
+    """Computes congestion-aware shortest paths through the zone graph.
+
+    Wraps a hand-rolled Dijkstra implementation whose edge costs grow
+    with how many drones already occupy a destination zone or are
+    scheduled on a given connection, so drones routed later are
+    naturally steered around congestion created by earlier ones.
+    """
     def __init__(self, map: Map) -> None:
+        """Initialize the path finder from a built ``Map``.
+
+        Args:
+            map: A ``Map`` whose adjacency and cost tables have been
+                built (e.g. via ``define_link_cost``).
+        """
         self._map: Map = map
         self._drones = self._map.get_drones()
         self._hubs: list[Zone] = self._map.get_hubs()
@@ -19,6 +32,20 @@ class PathFinder():
         self._link_load: dict[tuple[Zone, Zone], int] = {}
 
     def edge_cost(self, czone: Zone, nzone: Zone, cost: int) -> int:
+        """Compute the effective cost of moving from one zone to another.
+
+        Adds to the base movement cost extra wait turns proportional to
+        how congested the destination zone and the connection used
+        currently are.
+
+        Args:
+            czone: The zone the drone is moving from.
+            nzone: The zone the drone is moving to.
+            cost: The capacity of the connection between the two zones.
+
+        Returns:
+            The total number of turns this move is expected to cost.
+        """
         base: int = self._cost[(czone, nzone)][0]
         link: tuple[Zone, Zone]
         zone_wait: int = 0
@@ -34,6 +61,11 @@ class PathFinder():
         return base + max(zone_wait, link_wait)
 
     def reserve_path(self, path: list[Zone]) -> None:
+        """Increment the load counters for every edge along a path.
+
+        Args:
+            path: Ordered list of zones a drone will travel through.
+        """
         for i in range(0, len(path) - 1):
             czone, nzone = path[i], path[i + 1]
             if nzone != self._end:
@@ -42,6 +74,11 @@ class PathFinder():
             self._link_load[key] = self._link_load.get(key, 0) + 1
 
     def release_path(self, path: list[Zone]) -> None:
+        """Decrement the load counters for every edge along a path.
+
+        Args:
+            path: Ordered list of zones to release the reservation for.
+        """
         for i in range(0, len(path) - 1):
             czone, nzone = path[i], path[i + 1]
             if nzone != self._end:
@@ -50,6 +87,22 @@ class PathFinder():
             self._link_load[key] = self._link_load.get(key, 0) - 1
 
     def dijkstra_algo(self, current: Zone) -> list[Zone]:
+        """Compute the least-cost path from a zone to the end zone.
+
+        Runs a Dijkstra search over the adjacency graph using a binary
+        heap, with ``priority`` zones given precedence on cost ties,
+        and congestion-aware edge costs from ``edge_cost``.
+
+        Args:
+            current: The zone to start the search from.
+
+        Returns:
+            The ordered list of zones from ``current`` to the end zone
+            (inclusive of both).
+
+        Raises:
+            UnsolveableMapError: If no path to the end zone exists.
+        """
         distance: dict[Zone, int] = {}
         predecessor: dict[Zone, Zone] = {}
         visited: set[Zone] = set()

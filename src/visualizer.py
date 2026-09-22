@@ -7,11 +7,26 @@ from pygame.surface import Surface
 
 
 class Display():
+    """Graphical (pygame) renderer for the drone routing simulation.
+
+    Draws the zone graph, connections and drone positions on screen,
+    and lets the user step through the simulation turn by turn using
+    the keyboard.
+    """
     def __init__(
             self, drones: list[Drone],
             hubs: list[Zone],
             links: list[Connection],
             turns: int) -> None:
+        """Initialize the display, loading assets and computing the
+        coordinate scaling.
+
+        Args:
+            drones: The fleet of drones to display.
+            hubs: The list of zones to display.
+            links: The list of connections to display.
+            turns: Initial turn count (unused beyond storage).
+        """
         self._bg_img: Surface = pygame.image.load("src/images/Sumeru.webp")
         self._drone1: Surface = pygame.image.load(
             "src/images/floating_anemo_fungus.png")
@@ -40,6 +55,8 @@ class Display():
         self._font = pygame.font.SysFont(None, 17)
 
     def set_edges(self) -> None:
+        """Compute the map's coordinate bounding box and pixel size,
+        used to scale zone coordinates to screen coordinates."""
         listx: list[int] = [x.get_coordinates()[0] for x in self._hubs]
         listy: list[int] = [y.get_coordinates()[1] for y in self._hubs]
         self._edges = (max(listx), max(listy), min(listx), min(listy))
@@ -51,6 +68,14 @@ class Display():
             self._height = 1
 
     def scale(self, coords: tuple[int, int]) -> tuple[float, float]:
+        """Convert map coordinates to screen pixel coordinates.
+
+        Args:
+            coords: The (x, y) map coordinates to convert.
+
+        Returns:
+            The corresponding (x, y) pixel position on screen.
+        """
         swidth: float
         sheight: float
         cx: float = self._width / 2
@@ -63,6 +88,7 @@ class Display():
             sheight / 2 + y * sheight * 0.045)
 
     def display_drone(self) -> None:
+        """Draw every drone at its current zone's screen position."""
         for drone in self._drones:
             if drone.get_current():
                 self._screen.blit(
@@ -72,6 +98,17 @@ class Display():
                             drone.get_current().get_coordinates())))
 
     def exe(self, scheduler: Scheduler) -> None:
+        """Run the main render/event loop, driving the simulation.
+
+        Renders the background, connections, zones and drones every
+        frame, and advances the underlying ``Scheduler`` generator by
+        one turn each time the user presses SPACE or the right arrow
+        key. Handles fullscreen toggling and quitting.
+
+        Args:
+            scheduler: The ``Scheduler`` whose ``run()`` generator
+                drives the simulation being visualized.
+        """
         zone1: tuple[float, float]
         zone2: tuple[float, float]
         x: float

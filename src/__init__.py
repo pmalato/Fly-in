@@ -1,3 +1,6 @@
+"""Public re-exports of the custom exception types used across the
+Fly-in project, so callers can ``import`` them directly from ``src``."""
+
 from .errors import (
     MissingDroneCountError,
     MissingSeperatorError,

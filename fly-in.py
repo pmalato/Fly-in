@@ -10,6 +10,11 @@ from src.errors import (
 
 
 def main() -> None:
+    """Initialize and run the drone simulation system.
+
+    Parses configuration data, sets up the map, trackers, and scheduler, 
+    and executes the visualization display for the simulation turns.
+    """
     try:
         parser: Parser = Parser()
         parser.start()

@@ -7,10 +7,24 @@ from typing import Any, Generator
 
 
 class Scheduler():
+    """Drives the turn-by-turn simulation of the drone fleet.
+
+    Creates the drone fleet, computes an initial path for every drone,
+    then advances the simulation one turn at a time: resolving
+    arrivals, moving drones that can move, making waiting drones wait,
+    and replanning drones that have waited too long.
+    """
     MAX_WAIT: int = 3
     MAX_TURNS: int = 500
 
     def __init__(self, tracker: Tracker, map: Map) -> None:
+        """Initialize the scheduler and its drone fleet.
+
+        Args:
+            tracker: The ``Tracker`` used to lock/unlock zone and
+                connection capacity.
+            map: The built ``Map`` to route drones through.
+        """
         self._tracker: Tracker = tracker
         self._map: Map = map
         self._start: Zone = map.get_start()
@@ -24,12 +38,27 @@ class Scheduler():
         self._count: int = 0
 
     def check_everyone(self) -> bool:
+        """Check whether every drone has reached the end zone.
+
+        Returns:
+            True if all drones are in the ``ARRIVED`` state.
+        """
         for x in self._drone_list:
             if x.get_state() != Drone.ARRIVED:
                 return False
         return True
 
     def find_link(self, zone1: Zone, zone2: Zone) -> Connection | None:
+        """Find the connection linking two zones, in either direction.
+
+        Args:
+            zone1: One end of the connection.
+            zone2: The other end of the connection.
+
+        Returns:
+            The matching ``Connection``, or None if the zones are not
+            directly linked.
+        """
         for x in self._tracker.get_link():
             if x.get_connection() == (zone1, zone2) or\
                     x.get_connection() == (zone2, zone1):
@@ -38,6 +67,15 @@ class Scheduler():
 
     def resolve_arrivals(
             self, arrived: list[tuple[Drone, Connection]]) -> None:
+        """Finalize drones whose transit has completed this turn.
+
+        Stops each drone's transit, releases its connection lock, and
+        marks it as finished if it reached the goal zone.
+
+        Args:
+            arrived: List of (drone, connection) pairs whose transit
+                ended this turn, as returned by ``Tracker.advance_turn``.
+        """
         temp_drone_list: list[Drone] = []
         for drone, link in arrived:
             temp_drone_list += [drone]
@@ -48,6 +86,16 @@ class Scheduler():
                 drone.finish()
 
     def waiting_drones(self) -> None:
+        """Attempt to move every drone one step for the current turn.
+
+        For each drone: if already in transit, just report its
+        movement; otherwise, attempt to lock the destination zone and
+        connection and move it (or complete the move immediately if
+        the cost is 1 turn). If the move isn't currently possible, the
+        drone waits, and is replanned once it has waited
+        ``MAX_WAIT`` turns in a row. Prints the turn's movement log
+        line as a side effect.
+        """
         arrival_turn: int
         czone: Zone | None
         cost: int
@@ -97,6 +145,20 @@ class Scheduler():
                 end=" ")
 
     def run(self) -> Generator[Any, None, None]:
+        """Run the full simulation as a generator, yielding once per turn.
+
+        Computes and reserves an initial path for every drone, then
+        loops advancing the turn, resolving arrivals, and moving
+        waiting drones until every drone has reached the goal.
+
+        Yields:
+            None, once after each simulated turn (used to drive the
+            step-by-step visualizer).
+
+        Raises:
+            UnsolveableMapError: If drones remain stuck past
+                ``MAX_TURNS``.
+        """
         arrived: list[tuple[Drone, Connection]] = []
         for x in self._drone_list:
             path: list[Zone] = self._path_object.dijkstra_algo(self._start)
@@ -117,6 +179,15 @@ class Scheduler():
         return None
 
     def replan(self, drone: Drone) -> None:
+        """Recompute a drone's path from its current zone.
+
+        Releases the drone's remaining reserved path, computes a fresh
+        one from its current position, reserves it, and resets its
+        wait counter.
+
+        Args:
+            drone: The drone to replan.
+        """
         czone: Zone | None = drone.get_current()
         if not czone:
             return
@@ -127,7 +198,9 @@ class Scheduler():
         drone.reset_wait()
 
     def get_drones(self) -> list[Drone]:
+        """Return the list of all drones in the fleet."""
         return self._drone_list
 
     def get_count(self) -> int:
+        """Return the number of turns simulated so far."""
         return self._count
